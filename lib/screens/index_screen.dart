@@ -449,77 +449,84 @@ class _ContentState extends State<_Content> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    var size = MediaQuery.of(context).size;
+
+    return Flex(
+      direction: size.width > 700 ? Axis.horizontal : Axis.vertical,
       children: [
         Expanded(
-            flex: 1,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Show Image"),
-                    Checkbox(
-                        value: _showImg,
-                        onChanged: (value) {
-                          _showImg = value!;
-                          setState(() {});
-                        }),
-                  ],
-                ),
-                SfDateRangePicker(
-                  selectionColor: Colors.purple,
-                  startRangeSelectionColor: Colors.deepPurple,
-                  endRangeSelectionColor: Colors.deepPurple,
-                  rangeSelectionColor: Colors.purple,
-                  selectionMode: DateRangePickerSelectionMode.range,
-                  // initialSelectedRange: PickerDateRange(
-                  //   DateTime.now().subtract(const Duration(days: 3)),
-                  //   DateTime.now().add(const Duration(days: 3)),
-                  // ),
-                  // confirmText: "Yes!!!!",
-                  showActionButtons: true,
-                  onCancel: () {
-                    todosFiltered = todos;
-                    setState(() {});
-                  },
-                  onSubmit: (dateRange) {
-                    todosFiltered = [];
-                    if (dateRange is PickerDateRange) {
-                      for (var i = 0; i < todos.length; i++) {
-                        if (todos[i].time.compareTo(dateRange.startDate!) >=
-                                0 &&
-                            todos[i].time.compareTo(dateRange.endDate!) <= 0) {
-                          todosFiltered.add(todos[i]);
+            flex: size.width > 700 ? 1 : 2,
+            child: SingleChildScrollView(
+              controller: ScrollController(),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Show Image"),
+                      Checkbox(
+                          value: _showImg,
+                          onChanged: (value) {
+                            _showImg = value!;
+                            setState(() {});
+                          }),
+                    ],
+                  ),
+                  SfDateRangePicker(
+                    selectionColor: Colors.purple,
+                    startRangeSelectionColor: Colors.deepPurple,
+                    endRangeSelectionColor: Colors.deepPurple,
+                    rangeSelectionColor: Colors.purple,
+                    selectionMode: DateRangePickerSelectionMode.range,
+                    // initialSelectedRange: PickerDateRange(
+                    //   DateTime.now().subtract(const Duration(days: 3)),
+                    //   DateTime.now().add(const Duration(days: 3)),
+                    // ),
+                    // confirmText: "Yes!!!!",
+                    showActionButtons: true,
+                    onCancel: () {
+                      todosFiltered = todos;
+                      setState(() {});
+                    },
+                    onSubmit: (dateRange) {
+                      todosFiltered = [];
+                      if (dateRange is PickerDateRange) {
+                        for (var i = 0; i < todos.length; i++) {
+                          if (todos[i].time.compareTo(dateRange.startDate!) >=
+                                  0 &&
+                              todos[i].time.compareTo(dateRange.endDate!) <=
+                                  0) {
+                            todosFiltered.add(todos[i]);
+                          }
+                          print(todos[i].time);
                         }
-                        print(todos[i].time);
+
+                        setState(() {});
                       }
 
-                      setState(() {});
-                    }
-
-                    print(dateRange);
-                  },
-                  onSelectionChanged: (dateRange) {
-                    print(dateRange.value);
-                    widget.selectedDateDialog(dateRange.value);
-                  },
-                ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.add),
-                  style: ElevatedButton.styleFrom(primary: Colors.purple),
-                  label: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Text(
-                      "Add to do",
-                      style: TextStyle(fontSize: 17),
-                    ),
+                      print(dateRange);
+                    },
+                    onSelectionChanged: (dateRange) {
+                      print(dateRange.value);
+                      widget.selectedDateDialog(dateRange.value);
+                    },
                   ),
-                  onPressed: () {
-                    widget.saveTodoDialog();
-                  },
-                )
-              ],
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.add),
+                    style: ElevatedButton.styleFrom(primary: Colors.purple),
+                    label: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        "Add to do",
+                        style: TextStyle(fontSize: 17),
+                      ),
+                    ),
+                    onPressed: () {
+                      widget.saveTodoDialog();
+                    },
+                  )
+                ],
+              ),
             )),
         Expanded(
             flex: 3,
@@ -533,11 +540,18 @@ class _ContentState extends State<_Content> {
                           fadeIn: true,
                           child: ListTile(
                             title: Card(
-                              child: Row(
+                              child: Flex(
+                                direction: size.width > 800
+                                    ? Axis.horizontal
+                                    : Axis.vertical,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   AnimatedContainer(
-                                    width: _showImg ? 150 : 0,
+                                    width: _showImg
+                                        ? size.width > 800
+                                            ? 150
+                                            : 800
+                                        : 0,
                                     duration: const Duration(milliseconds: 280),
                                     child: const Image(
                                       image:
