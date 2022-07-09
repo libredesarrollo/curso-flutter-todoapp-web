@@ -45,13 +45,19 @@ class _IndexScreenState extends State<IndexScreen> {
         toolbarHeight: 90,
         elevation: 5,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text(
+          mainAxisAlignment: MediaQuery.of(context).size.width > 500
+              ? MainAxisAlignment.center
+              : MainAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: MediaQuery.of(context).size.width > 500 ? 130 : 0,
+              height: 20,
+            ),
+            const Text(
               "Todo",
               style: TextStyle(fontSize: 40, color: Colors.grey),
             ),
-            Text(
+            const Text(
               "App",
               style: TextStyle(fontSize: 40, color: Colors.white),
             )
@@ -456,76 +462,83 @@ class _ContentState extends State<_Content> {
       children: [
         Expanded(
             flex: size.width > 700 ? 1 : 2,
-            child: SingleChildScrollView(
-              controller: ScrollController(),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Show Image"),
-                      Checkbox(
-                          value: _showImg,
-                          onChanged: (value) {
-                            _showImg = value!;
-                            setState(() {});
-                          }),
-                    ],
-                  ),
-                  SfDateRangePicker(
-                    selectionColor: Colors.purple,
-                    startRangeSelectionColor: Colors.deepPurple,
-                    endRangeSelectionColor: Colors.deepPurple,
-                    rangeSelectionColor: Colors.purple,
-                    selectionMode: DateRangePickerSelectionMode.range,
-                    // initialSelectedRange: PickerDateRange(
-                    //   DateTime.now().subtract(const Duration(days: 3)),
-                    //   DateTime.now().add(const Duration(days: 3)),
-                    // ),
-                    // confirmText: "Yes!!!!",
-                    showActionButtons: true,
-                    onCancel: () {
-                      todosFiltered = todos;
-                      setState(() {});
-                    },
-                    onSubmit: (dateRange) {
-                      todosFiltered = [];
-                      if (dateRange is PickerDateRange) {
-                        for (var i = 0; i < todos.length; i++) {
-                          if (todos[i].time.compareTo(dateRange.startDate!) >=
-                                  0 &&
-                              todos[i].time.compareTo(dateRange.endDate!) <=
-                                  0) {
-                            todosFiltered.add(todos[i]);
+            child: Container(
+              height: MediaQuery.of(context).size.height,
+              decoration: const BoxDecoration(
+                  shape: BoxShape.rectangle,
+                  border: Border(
+                      right: BorderSide(width: 4, color: Colors.deepPurple))),
+              child: SingleChildScrollView(
+                controller: ScrollController(),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Show Image"),
+                        Checkbox(
+                            value: _showImg,
+                            onChanged: (value) {
+                              _showImg = value!;
+                              setState(() {});
+                            }),
+                      ],
+                    ),
+                    SfDateRangePicker(
+                      selectionColor: Colors.purple,
+                      startRangeSelectionColor: Colors.deepPurple,
+                      endRangeSelectionColor: Colors.deepPurple,
+                      rangeSelectionColor: Colors.purple,
+                      selectionMode: DateRangePickerSelectionMode.range,
+                      // initialSelectedRange: PickerDateRange(
+                      //   DateTime.now().subtract(const Duration(days: 3)),
+                      //   DateTime.now().add(const Duration(days: 3)),
+                      // ),
+                      // confirmText: "Yes!!!!",
+                      showActionButtons: true,
+                      onCancel: () {
+                        todosFiltered = todos;
+                        setState(() {});
+                      },
+                      onSubmit: (dateRange) {
+                        todosFiltered = [];
+                        if (dateRange is PickerDateRange) {
+                          for (var i = 0; i < todos.length; i++) {
+                            if (todos[i].time.compareTo(dateRange.startDate!) >=
+                                    0 &&
+                                todos[i].time.compareTo(dateRange.endDate!) <=
+                                    0) {
+                              todosFiltered.add(todos[i]);
+                            }
+                            print(todos[i].time);
                           }
-                          print(todos[i].time);
+
+                          setState(() {});
                         }
 
-                        setState(() {});
-                      }
-
-                      print(dateRange);
-                    },
-                    onSelectionChanged: (dateRange) {
-                      print(dateRange.value);
-                      widget.selectedDateDialog(dateRange.value);
-                    },
-                  ),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.add),
-                    style: ElevatedButton.styleFrom(primary: Colors.purple),
-                    label: const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text(
-                        "Add to do",
-                        style: TextStyle(fontSize: 17),
-                      ),
+                        print(dateRange);
+                      },
+                      onSelectionChanged: (dateRange) {
+                        print(dateRange.value);
+                        widget.selectedDateDialog(dateRange.value);
+                      },
                     ),
-                    onPressed: () {
-                      widget.saveTodoDialog();
-                    },
-                  )
-                ],
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.add),
+                      style: ElevatedButton.styleFrom(primary: Colors.purple),
+                      label: const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          "Add to do",
+                          style: TextStyle(fontSize: 17),
+                        ),
+                      ),
+                      onPressed: () {
+                        widget.saveTodoDialog();
+                      },
+                    )
+                  ],
+                ),
               ),
             )),
         Expanded(
@@ -552,10 +565,15 @@ class _ContentState extends State<_Content> {
                                             ? 150
                                             : 800
                                         : 0,
-                                    duration: const Duration(milliseconds: 280),
-                                    child: const Image(
-                                      image:
-                                          AssetImage("assets/images/img.jpg"),
+                                    duration: const Duration(
+                                        milliseconds:
+                                            280), //0 si existe overflow
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: const Image(
+                                        image:
+                                            AssetImage("assets/images/img.jpg"),
+                                      ),
                                     ),
                                   ),
                                   GestureDetector(
