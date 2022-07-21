@@ -1,12 +1,14 @@
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:flutter/material.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:delayed_display/delayed_display.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart' as syspath;
+
 import 'package:todoapp/models/todo.dart';
 
 class IndexScreen extends StatefulWidget {
@@ -26,14 +28,18 @@ class _IndexScreenState extends State<IndexScreen> {
     _selectedDate = selectedDate;
   }
 
-  _saveTodoDialog({Todo? todo}) {
-    todo ??= Todo(time: DateTime.now());
+  _saveTodoDialog({QueryDocumentSnapshot? todo}) {
+    // todo ??= Todo(time: DateTime.now());
 
     showDialog(
         context: context,
         builder: (context) => _SaveTodoDialog(
             selectedRangeDate: _selectedDate,
-            selectedDate: todo!.id == 0 ? _selectedDate?.startDate : todo.time,
+            selectedDate: todo != null
+                ? _selectedDate?.startDate
+                : todo == null
+                    ? _selectedDate?.startDate
+                    : todo['time'].toDate(),
             todo: todo));
   }
 
@@ -237,12 +243,12 @@ class _ProfileDialog extends StatelessWidget {
 
 class _SaveTodoDialog extends StatefulWidget {
   _SaveTodoDialog(
-      {Key? key, this.selectedRangeDate, this.selectedDate, required this.todo})
+      {Key? key, this.selectedRangeDate, this.selectedDate, this.todo})
       : super(key: key);
 
   DateTime? selectedDate;
   final PickerDateRange? selectedRangeDate;
-  final Todo todo;
+  final QueryDocumentSnapshot? todo;
 
   @override
   State<_SaveTodoDialog> createState() => _SaveTodoDialogState();
@@ -252,8 +258,10 @@ class _SaveTodoDialogState extends State<_SaveTodoDialog> {
   final _key = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
-
   final _textController = TextEditingController();
+
+  final CollectionReference _todos =
+      FirebaseFirestore.instance.collection('todos');
 
   String _routeImage = "";
 
@@ -264,8 +272,8 @@ class _SaveTodoDialogState extends State<_SaveTodoDialog> {
 
   @override
   void initState() {
-    _nameController.text = widget.todo.title;
-    _textController.text = widget.todo.content;
+    _nameController.text = widget.todo?['title'] ?? '';
+    _textController.text = widget.todo?['content'] ?? '';
 
     super.initState();
   }
@@ -285,16 +293,7 @@ class _SaveTodoDialogState extends State<_SaveTodoDialog> {
                 child: Column(
                   children: [
                     _ImageField(
-                      onSelectedImage: _selectedImage,
-                    ),
-                    if (_routeImage == "")
-                      const Text(
-                        "Image not Selected",
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red),
-                      ),
+                        onSelectedImage: _selectedImage, todo: widget.todo),
                     const SizedBox(
                       height: 15,
                     ),
@@ -355,10 +354,28 @@ class _SaveTodoDialogState extends State<_SaveTodoDialog> {
                     ),
                     TextButton(
                         onPressed: () {
-                          if (_key.currentState!.validate()) {
-                            print("Guardar!");
+                          if (_key.currentState!.validate() &&
+                              widget.selectedDate != null) {
+                            // print("Guardar!");
+                            // print(widget.selectedDate);
+
+                            if (widget.todo == null) {
+                              _todos.add({
+                                'time': widget.selectedDate,
+                                'title': _nameController.text,
+                                'content': _textController.text,
+                                'image': '',
+                                'image_full': '',
+                              });
+                            } else {
+                              _todos.doc(widget.todo?.id).update({
+                                'time': widget.selectedDate,
+                                'title': _nameController.text,
+                                'content': _textController.text
+                              });
+                            }
                           }
-                          print(widget.selectedDate);
+                          Navigator.of(context).pop();
                         },
                         style: TextButton.styleFrom(
                             primary: Colors.white,
@@ -393,64 +410,33 @@ class _Content extends StatefulWidget {
 class _ContentState extends State<_Content> {
   bool _showImg = true;
 
-  List<Todo> todos = [];
-  List<Todo> todosFiltered = [];
+  List<QueryDocumentSnapshot> todos = [];
+  List<QueryDocumentSnapshot> todosFiltered = [];
+
+  bool firstFiltered = false;
+
+  final CollectionReference _todos =
+      FirebaseFirestore.instance.collection('todos');
+
+  Future getDataTodo() async {
+    QuerySnapshot query = await _todos.get();
+    print("todo:" + query.docs[0]['title']);
+  }
 
   @override
   void initState() {
     super.initState();
 
-    todos.addAll([
-      Todo(
-          id: 5,
-          title: "Test 5",
-          content: "Content test",
-          time: DateTime.now().subtract(const Duration(days: 2))),
-      Todo(
-          id: 3,
-          title: "Test 3",
-          content: "Content test",
-          time: DateTime.now().subtract(const Duration(days: 5))),
-      Todo(
-          id: 8,
-          title: "Test 8",
-          content: "Content test",
-          time: DateTime.now()),
-      Todo(
-          id: 2,
-          title: "Test 2",
-          content: "Content test",
-          time: DateTime.now().add(const Duration(days: 2))),
-      Todo(
-          id: 9,
-          title: "Test 9",
-          content: "Content test",
-          time: DateTime.now()),
-      Todo(
-          id: 0,
-          title: "Test 0",
-          content: "Content test",
-          time: DateTime.now().subtract(const Duration(days: 7))),
-      Todo(
-          id: 50,
-          title: "Test 50",
-          content: "Content test",
-          time: DateTime.now()),
-      Todo(
-          id: 45,
-          title: "Test 45",
-          content: "Content test",
-          time: DateTime.now().add(const Duration(days: 5)))
-    ]);
+    // getDataTodo();
 
-    todosFiltered = todos;
+    // todosFiltered = todos;
     // todosFiltered = [...todos];
 
-    if (widget.orden == "By date") {
-      todosFiltered.sort(((a, b) => a.time.compareTo(b.time)));
-    } else {
-      todosFiltered.sort(((a, b) => a.id.compareTo(b.id)));
-    }
+    // if (widget.orden == "By date") {
+    //   todosFiltered.sort(((a, b) => a['time'].compareTo(b['time'])));
+    // } else {
+    //   todosFiltered.sort(((a, b) => a.id.compareTo(b.id)));
+    // }
   }
 
   @override
@@ -498,19 +484,25 @@ class _ContentState extends State<_Content> {
                       showActionButtons: true,
                       onCancel: () {
                         todosFiltered = todos;
+                        firstFiltered = false;
                         setState(() {});
                       },
                       onSubmit: (dateRange) {
                         todosFiltered = [];
+                        firstFiltered = true;
                         if (dateRange is PickerDateRange) {
                           for (var i = 0; i < todos.length; i++) {
-                            if (todos[i].time.compareTo(dateRange.startDate!) >=
+                            if (todos[i]['time']
+                                        .toDate()
+                                        .compareTo(dateRange.startDate!) >=
                                     0 &&
-                                todos[i].time.compareTo(dateRange.endDate!) <=
+                                todos[i]['time']
+                                        .toDate()
+                                        .compareTo(dateRange.endDate!) <=
                                     0) {
                               todosFiltered.add(todos[i]);
                             }
-                            print(todos[i].time);
+                            print(todos[i]['time']);
                           }
 
                           setState(() {});
@@ -543,109 +535,136 @@ class _ContentState extends State<_Content> {
             )),
         Expanded(
             flex: 3,
-            child: todosFiltered.isEmpty
-                ? const _PageEmpty()
-                : ListView.builder(
-                    itemCount: todosFiltered.length,
-                    itemBuilder: ((context, index) => DelayedDisplay(
-                          delay: const Duration(milliseconds: 5),
-                          slidingBeginOffset: const Offset(-1, 0),
-                          fadeIn: true,
-                          child: ListTile(
-                            title: Card(
-                              child: Flex(
-                                direction: size.width > 800
-                                    ? Axis.horizontal
-                                    : Axis.vertical,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AnimatedContainer(
-                                    width: _showImg
-                                        ? size.width > 800
-                                            ? 150
-                                            : 800
-                                        : 0,
-                                    duration: const Duration(
-                                        milliseconds:
-                                            280), //0 si existe overflow
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: const Image(
-                                        image:
-                                            AssetImage("assets/images/img.jpg"),
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: (() => widget.saveTodoDialog(
-                                        todo: todosFiltered[index])),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            todosFiltered[index].title,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 15),
+            child: StreamBuilder(
+                stream: _todos
+                    .orderBy('time', descending: (widget.orden == "By date"))
+                    .snapshots(),
+                builder: (context, AsyncSnapshot<QuerySnapshot?> snanpshot) {
+                  if (snanpshot.hasData) {
+                    todos = snanpshot.data!.docs;
+                    if (!firstFiltered) {
+                      todosFiltered = snanpshot.data!.docs;
+                    }
+                    return ListView.builder(
+                        itemCount: todosFiltered.length,
+                        itemBuilder: ((context, index) => DelayedDisplay(
+                              delay: const Duration(milliseconds: 5),
+                              slidingBeginOffset: const Offset(-1, 0),
+                              fadeIn: true,
+                              child: ListTile(
+                                title: Card(
+                                  child: Flex(
+                                    direction: size.width > 800
+                                        ? Axis.horizontal
+                                        : Axis.vertical,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      AnimatedContainer(
+                                        width: _showImg
+                                            ? size.width > 800
+                                                ? 150
+                                                : 800
+                                            : 0,
+                                        duration: const Duration(
+                                            milliseconds:
+                                                280), //0 si existe overflow
+                                        child: ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                          child: Image(
+                                            image: todosFiltered[index]
+                                                        ['image_full'] ==
+                                                    ""
+                                                ? const AssetImage(
+                                                        "assets/images/img.jpg")
+                                                    as ImageProvider
+                                                : NetworkImage(
+                                                    todosFiltered[index]
+                                                        ['image_full']),
                                           ),
-                                          Padding(
-                                            padding:
-                                                const EdgeInsets.only(left: 8),
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  "${todosFiltered[index].time.day}-${todosFiltered[index].time.month} ",
-                                                  style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Color.fromARGB(
-                                                          255, 99, 99, 99)),
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: (() => widget.saveTodoDialog(
+                                            todo: todosFiltered[index])),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                todosFiltered[index]['title'],
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15),
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 8),
+                                                child: Row(
+                                                  children: [
+                                                    Text(
+                                                      "${todosFiltered[index]['time'].toDate().day}-${todosFiltered[index]['time'].toDate().month} ",
+                                                      style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Color.fromARGB(
+                                                              255, 99, 99, 99)),
+                                                    ),
+                                                    const SizedBox(height: 30),
+                                                    Text(
+                                                      todosFiltered[index]
+                                                          ['content'],
+                                                      style: const TextStyle(
+                                                          color: Color.fromARGB(
+                                                              255, 99, 99, 99)),
+                                                    )
+                                                  ],
                                                 ),
-                                                const SizedBox(height: 30),
-                                                Text(
-                                                  todosFiltered[index].content,
-                                                  style: const TextStyle(
-                                                      color: Color.fromARGB(
-                                                          255, 99, 99, 99)),
-                                                )
-                                              ],
-                                            ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                ],
+                                ),
+                                leading: const Icon(
+                                  Icons.check_circle_outline,
+                                  color: Colors.green,
+                                ),
+                                trailing: GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) => _ConfirmDialog(
+                                            message:
+                                                "Are you sure to remove the to do?",
+                                            confirm: () {
+                                              var id = todosFiltered[index].id;
+
+                                              // todos
+                                              //     .remove(todosFiltered[index]);
+                                              todosFiltered
+                                                  .remove(todosFiltered[index]);
+                                              _todos.doc(id).delete();
+
+                                              setState(() {});
+                                            }));
+                                  },
+                                  child: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                ),
                               ),
-                            ),
-                            leading: const Icon(
-                              Icons.check_circle_outline,
-                              color: Colors.green,
-                            ),
-                            trailing: GestureDetector(
-                              onTap: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (context) => _ConfirmDialog(
-                                        message:
-                                            "Are you sure to remove the to do?",
-                                        confirm: () {
-                                          todos.remove(todosFiltered[index]);
-                                          // todosFiltered
-                                          //     .remove(todosFiltered[index]);
-                                          setState(() {});
-                                        }));
-                              },
-                              child: const Icon(
-                                Icons.delete,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ),
-                        )))),
+                            )));
+                  }
+
+                  return const _PageEmpty();
+                }))
       ],
     );
   }
@@ -680,9 +699,13 @@ class _PageEmpty extends StatelessWidget {
 class _ImageField extends StatefulWidget {
   final Function onSelectedImage;
   final String imageDefault;
+  final QueryDocumentSnapshot? todo;
 
   const _ImageField(
-      {Key? key, required this.onSelectedImage, this.imageDefault = ""})
+      {Key? key,
+      required this.onSelectedImage,
+      this.imageDefault = "",
+      this.todo})
       : super(key: key);
 
   @override
@@ -690,16 +713,15 @@ class _ImageField extends StatefulWidget {
 }
 
 class _ImageFieldState extends State<_ImageField> {
-  File? _imagePlace;
+  String? _imagePlace;
+
+  final CollectionReference _todos =
+      FirebaseFirestore.instance.collection('todos');
 
   @override
   void initState() {
-    try {
-      _imagePlace =
-          widget.imageDefault != "" ? File(widget.imageDefault) : null;
-    } catch (e) {
-      print("Error al convertir el archivo");
-    }
+    _imagePlace =
+        widget.todo?['image_full']; // nulo el to do no existe, "" to do sin img
 
     super.initState();
   }
@@ -708,29 +730,22 @@ class _ImageFieldState extends State<_ImageField> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (_imagePlace != null)
-          GestureDetector(
-            onTap: () {
-              imagePicker();
-            },
-            child: const CircleAvatar(
-              radius: 50,
-              backgroundImage: AssetImage("assets/images/img.jpg"),
-              // Image.file(_imagePlace!)
-            ),
-          ),
-        if (_imagePlace == null)
-          GestureDetector(
-            onTap: () {
-              imagePicker();
-            },
-            child: Container(
-                width: 160,
-                height: 100,
-                decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: Colors.purple)),
-                child: const Icon(Icons.image, color: Colors.purple)),
-          ),
+        GestureDetector(
+          onTap: () {
+            imagePicker();
+          },
+          child: Container(
+              width: 160,
+              height: 100,
+              decoration: BoxDecoration(
+                  border: Border.all(width: 1, color: Colors.purple)),
+              child: _imagePlace != null && _imagePlace != ""
+                  ? Image(
+                      image: NetworkImage(_imagePlace!),
+                      fit: BoxFit.cover,
+                    )
+                  : const Icon(Icons.image, color: Colors.purple)),
+        ),
         // TextButton(
         //   onPressed: imagePicker,
         //   child: const Text("Pick a photo"),
@@ -750,32 +765,33 @@ class _ImageFieldState extends State<_ImageField> {
     if (imageFile == null) {
       return;
     }
-    setState(() {
-      _imagePlace = File(imageFile.path);
-    });
 
-    _saveImageLocal();
+    _saveImageFirebase(imageFile);
   }
 
-  Future cameraPicker() async {
-    final imageFile = await ImagePicker()
-        .pickImage(source: ImageSource.camera, imageQuality: 60);
-
-    if (imageFile == null) {
-      return;
-    }
-    setState(() {
-      _imagePlace = File(imageFile.path);
-    });
-
-    _saveImageLocal();
-  }
-
-  _saveImageLocal() async {
+  _saveImageFirebase(XFile file) async {
     // final appDir = await syspath.getApplicationDocumentsDirectory();
     // final fileName = path.basename(_imagePlace!.path);
     // /*final savedImage = */ await _imagePlace!.copy('${appDir.path}/$fileName');
 
-    widget.onSelectedImage(_imagePlace!.path);
+    final filePath = "images/${DateTime.now()}.jpg";
+
+    final storageRef = FirebaseStorage.instance.ref(filePath);
+
+    // storageRef.putData(await _imagePlace!.readAsBytes());
+
+    storageRef
+        .putData(await file.readAsBytes())
+        .then((TaskSnapshot value) async {
+      if (widget.todo != null) {
+        final newUrl = await value.ref.getDownloadURL();
+        _todos.doc(widget.todo!.id).update({
+          'image': value.ref.fullPath,
+          'image_full': newUrl,
+        });
+        _imagePlace = newUrl;
+        setState(() {});
+      }
+    });
   }
 }

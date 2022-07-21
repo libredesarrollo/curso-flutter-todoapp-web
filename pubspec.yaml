@@ -33,6 +33,9 @@ dependencies:
   delayed_display: #https://pub.dev/packages/delayed_display
   image_picker: #https://pub.dev/packages/image_picker
   path_provider: #https://pub.dev/packages/path_provider
+  firebase_core: #https://pub.dev/packages/firebase_core
+  cloud_firestore: #https://pub.dev/packages/cloud_firestore
+  firebase_storage : #https://pub.dev/packages/firebase_storage 
 
 
   # The following adds the Cupertino Icons font to your application.
