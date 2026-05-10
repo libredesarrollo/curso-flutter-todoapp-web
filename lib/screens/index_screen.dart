@@ -10,9 +10,7 @@ import 'package:path_provider/path_provider.dart' as syspath;
 import 'package:todoapp/models/todo.dart';
 
 class IndexScreen extends StatefulWidget {
-  const IndexScreen({
-    Key? key,
-  }) : super(key: key);
+  const IndexScreen({Key? key}) : super(key: key);
 
   @override
   State<IndexScreen> createState() => _IndexScreenState();
@@ -30,11 +28,13 @@ class _IndexScreenState extends State<IndexScreen> {
     todo ??= Todo(time: DateTime.now());
 
     showDialog(
-        context: context,
-        builder: (context) => _SaveTodoDialog(
-            selectedRangeDate: _selectedDate,
-            selectedDate: todo!.id == 0 ? _selectedDate?.startDate : todo.time,
-            todo: todo));
+      context: context,
+      builder: (context) => _SaveTodoDialog(
+        selectedRangeDate: _selectedDate,
+        selectedDate: todo!.id == 0 ? _selectedDate?.startDate : todo.time,
+        todo: todo,
+      ),
+    );
   }
 
   @override
@@ -60,7 +60,7 @@ class _IndexScreenState extends State<IndexScreen> {
             const Text(
               "App",
               style: TextStyle(fontSize: 40, color: Colors.white),
-            )
+            ),
           ],
         ),
         actions: [
@@ -69,41 +69,44 @@ class _IndexScreenState extends State<IndexScreen> {
             child: Row(
               children: [
                 DropdownButton(
-                    items: <String>["By date", "By creation"]
-                        .map((i) => DropdownMenuItem<String>(
-                              value: i,
-                              child: Text(
-                                i,
-                                style:
-                                    const TextStyle(color: Colors.deepPurple),
-                              ),
-                            ))
-                        .toList(),
-                    hint: _orderSelected == ""
-                        ? const Text(
-                            "Seleccionar",
-                            style: TextStyle(color: Colors.white),
-                          )
-                        : Text(
-                            _orderSelected,
-                            style: const TextStyle(color: Colors.white),
+                  items: <String>["By date", "By creation"]
+                      .map(
+                        (i) => DropdownMenuItem<String>(
+                          value: i,
+                          child: Text(
+                            i,
+                            style: const TextStyle(color: Colors.deepPurple),
                           ),
-                    onChanged: (value) {
-                      setState(() {
-                        _orderSelected = value.toString();
-                      });
-                    }),
-                const _UserAvatar()
+                        ),
+                      )
+                      .toList(),
+                  hint: _orderSelected == ""
+                      ? const Text(
+                          "Seleccionar",
+                          style: TextStyle(color: Colors.white),
+                        )
+                      : Text(
+                          _orderSelected,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                  onChanged: (value) {
+                    setState(() {
+                      _orderSelected = value.toString();
+                    });
+                  },
+                ),
+                const _UserAvatar(),
               ],
             ),
-          )
+          ),
         ],
       ),
       body: _Content(
-          key: Key(_orderSelected),
-          saveTodoDialog: _saveTodoDialog,
-          selectedDateDialog: _selectedDateDialog,
-          orden: _orderSelected),
+        key: Key(_orderSelected),
+        saveTodoDialog: _saveTodoDialog,
+        selectedDateDialog: _selectedDateDialog,
+        orden: _orderSelected,
+      ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.purple,
         onPressed: () {
@@ -129,10 +132,11 @@ class _UserAvatar extends StatelessWidget {
       ),
       onTap: () {
         showDialog(
-            context: context,
-            builder: (context) {
-              return _ProfileDialog();
-            });
+          context: context,
+          builder: (context) {
+            return _ProfileDialog();
+          },
+        );
       },
     );
   }
@@ -142,9 +146,11 @@ class _ConfirmDialog extends StatelessWidget {
   final Function confirm;
   final String message;
 
-  const _ConfirmDialog(
-      {Key? key, required this.confirm, this.message = "Confirm"})
-      : super(key: key);
+  const _ConfirmDialog({
+    Key? key,
+    required this.confirm,
+    this.message = "Confirm",
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -153,17 +159,19 @@ class _ConfirmDialog extends StatelessWidget {
       content: Text(message),
       actions: [
         TextButton(
-            onPressed: () {
-              // eliminar todo
-              confirm();
-              Navigator.of(context).pop();
-            },
-            child: const Text("Yes")),
+          onPressed: () {
+            // eliminar todo
+            confirm();
+            Navigator.of(context).pop();
+          },
+          child: const Text("Yes"),
+        ),
         TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text("No"))
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text("No"),
+        ),
       ],
     );
   }
@@ -182,53 +190,60 @@ class _ProfileDialog extends StatelessWidget {
     return AlertDialog(
       content: ConstrainedBox(
         constraints: const BoxConstraints(
-            minWidth: 100, maxWidth: 450, minHeight: 100, maxHeight: 280),
+          minWidth: 100,
+          maxWidth: 450,
+          minHeight: 100,
+          maxHeight: 280,
+        ),
         child: SizedBox(
           width: MediaQuery.of(context).size.width * .4,
           height: MediaQuery.of(context).size.height * .4,
           child: Form(
-              key: _key,
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundImage: AssetImage("assets/images/user.jpg"),
-                        // backgroundImage:
-                        //     NetworkImage("https://randomuser.me/api/portraits/men/23.jpg"),
-                      ),
+            key: _key,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundImage: AssetImage("assets/images/user.jpg"),
+                      // backgroundImage:
+                      //     NetworkImage("https://randomuser.me/api/portraits/men/23.jpg"),
                     ),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                          labelText: "Name", border: OutlineInputBorder()),
-                      controller: _nameController,
+                  ),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: "Name",
+                      border: OutlineInputBorder(),
                     ),
-                    const SizedBox(
-                      height: 10,
+                    controller: _nameController,
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: "Avatar",
+                      border: OutlineInputBorder(),
                     ),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                          labelText: "Avatar", border: OutlineInputBorder()),
-                      controller: _avatarController,
+                    controller: _avatarController,
+                  ),
+                  const SizedBox(height: 15),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.purple,
+                      elevation: 4,
                     ),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    TextButton(
-                        style: TextButton.styleFrom(
-                            primary: Colors.white,
-                            backgroundColor: Colors.purple,
-                            elevation: 4),
-                        onPressed: () {
-                          final sizeWidget = _key.currentContext!.size;
-                          print(sizeWidget);
-                        },
-                        child: const Text("Update"))
-                  ],
-                ),
-              )),
+                    onPressed: () {
+                      final sizeWidget = _key.currentContext!.size;
+                      print(sizeWidget);
+                    },
+                    child: const Text("Update"),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -236,9 +251,12 @@ class _ProfileDialog extends StatelessWidget {
 }
 
 class _SaveTodoDialog extends StatefulWidget {
-  _SaveTodoDialog(
-      {Key? key, this.selectedRangeDate, this.selectedDate, required this.todo})
-      : super(key: key);
+  _SaveTodoDialog({
+    Key? key,
+    this.selectedRangeDate,
+    this.selectedDate,
+    required this.todo,
+  }) : super(key: key);
 
   DateTime? selectedDate;
   final PickerDateRange? selectedRangeDate;
@@ -275,99 +293,103 @@ class _SaveTodoDialogState extends State<_SaveTodoDialog> {
     return AlertDialog(
       content: ConstrainedBox(
         constraints: const BoxConstraints(
-            minWidth: 100, maxWidth: 450, minHeight: 100, maxHeight: 700),
+          minWidth: 100,
+          maxWidth: 450,
+          minHeight: 100,
+          maxHeight: 700,
+        ),
         child: SizedBox(
           width: MediaQuery.of(context).size.width * 0.4,
           height: MediaQuery.of(context).size.height * 0.7,
           child: Form(
-              key: _key,
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _ImageField(
-                      onSelectedImage: _selectedImage,
-                    ),
-                    if (_routeImage == "")
-                      const Text(
-                        "Image not Selected",
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red),
+            key: _key,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _ImageField(onSelectedImage: _selectedImage),
+                  if (_routeImage == "")
+                    const Text(
+                      "Image not Selected",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
                       ),
-                    const SizedBox(
-                      height: 15,
                     ),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                          labelText: "Name", border: OutlineInputBorder()),
-                      controller: _nameController,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "You have to put a name to the place";
-                        }
+                  const SizedBox(height: 15),
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      labelText: "Name",
+                      border: OutlineInputBorder(),
+                    ),
+                    controller: _nameController,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "You have to put a name to the place";
+                      }
 
-                        return null;
-                      },
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    maxLines: 3,
+                    minLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: "Text",
+                      border: OutlineInputBorder(),
                     ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    TextFormField(
-                      maxLines: 3,
-                      minLines: 3,
-                      decoration: const InputDecoration(
-                          labelText: "Text", border: OutlineInputBorder()),
-                      controller: _textController,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return "You have to put a name to the place";
-                        }
+                    controller: _textController,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "You have to put a name to the place";
+                      }
 
-                        return null;
-                      },
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    SfDateRangePicker(
-                      selectionColor: Colors.purple,
-                      selectionMode: DateRangePickerSelectionMode.single,
-                      initialSelectedDate: widget.selectedDate == null
-                          ? DateTime.now()
-                          : widget.selectedDate!,
-                      onSelectionChanged: (dateRangePickerSelection) {
-                        print(dateRangePickerSelection.value);
-                        widget.selectedDate = dateRangePickerSelection.value;
-                        setState(() {});
-                      },
-                    ),
-                    if (widget.selectedDate == null)
-                      const Text(
-                        "Date not Selected",
-                        style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red),
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  SfDateRangePicker(
+                    selectionColor: Colors.purple,
+                    selectionMode: DateRangePickerSelectionMode.single,
+                    initialSelectedDate: widget.selectedDate == null
+                        ? DateTime.now()
+                        : widget.selectedDate!,
+                    onSelectionChanged: (dateRangePickerSelection) {
+                      print(dateRangePickerSelection.value);
+                      widget.selectedDate = dateRangePickerSelection.value;
+                      setState(() {});
+                    },
+                  ),
+                  if (widget.selectedDate == null)
+                    const Text(
+                      "Date not Selected",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
                       ),
-                    const SizedBox(
-                      height: 15,
                     ),
-                    TextButton(
-                        onPressed: () {
-                          if (_key.currentState!.validate()) {
-                            print("Guardar!");
-                          }
-                          print(widget.selectedDate);
-                        },
-                        style: TextButton.styleFrom(
-                            primary: Colors.white,
-                            backgroundColor: Colors.purple,
-                            elevation: 4),
-                        child: const Text("Save"))
-                  ],
-                ),
-              )),
+                  const SizedBox(height: 15),
+                  TextButton(
+                    onPressed: () {
+                      if (_key.currentState!.validate()) {
+                        print("Guardar!");
+                      }
+                      print(widget.selectedDate);
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+
+                      backgroundColor: Colors.purple,
+                      elevation: 4,
+                    ),
+                    child: const Text("Save"),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -379,12 +401,12 @@ class _Content extends StatefulWidget {
   Function selectedDateDialog;
   String orden;
 
-  _Content(
-      {Key? key,
-      required this.saveTodoDialog,
-      required this.selectedDateDialog,
-      required this.orden})
-      : super(key: key);
+  _Content({
+    Key? key,
+    required this.saveTodoDialog,
+    required this.selectedDateDialog,
+    required this.orden,
+  }) : super(key: key);
 
   @override
   State<_Content> createState() => _ContentState();
@@ -402,45 +424,53 @@ class _ContentState extends State<_Content> {
 
     todos.addAll([
       Todo(
-          id: 5,
-          title: "Test 5",
-          content: "Content test",
-          time: DateTime.now().subtract(const Duration(days: 2))),
+        id: 5,
+        title: "Test 5",
+        content: "Content test",
+        time: DateTime.now().subtract(const Duration(days: 2)),
+      ),
       Todo(
-          id: 3,
-          title: "Test 3",
-          content: "Content test",
-          time: DateTime.now().subtract(const Duration(days: 5))),
+        id: 3,
+        title: "Test 3",
+        content: "Content test",
+        time: DateTime.now().subtract(const Duration(days: 5)),
+      ),
       Todo(
-          id: 8,
-          title: "Test 8",
-          content: "Content test",
-          time: DateTime.now()),
+        id: 8,
+        title: "Test 8",
+        content: "Content test",
+        time: DateTime.now(),
+      ),
       Todo(
-          id: 2,
-          title: "Test 2",
-          content: "Content test",
-          time: DateTime.now().add(const Duration(days: 2))),
+        id: 2,
+        title: "Test 2",
+        content: "Content test",
+        time: DateTime.now().add(const Duration(days: 2)),
+      ),
       Todo(
-          id: 9,
-          title: "Test 9",
-          content: "Content test",
-          time: DateTime.now()),
+        id: 9,
+        title: "Test 9",
+        content: "Content test",
+        time: DateTime.now(),
+      ),
       Todo(
-          id: 0,
-          title: "Test 0",
-          content: "Content test",
-          time: DateTime.now().subtract(const Duration(days: 7))),
+        id: 0,
+        title: "Test 0",
+        content: "Content test",
+        time: DateTime.now().subtract(const Duration(days: 7)),
+      ),
       Todo(
-          id: 50,
-          title: "Test 50",
-          content: "Content test",
-          time: DateTime.now()),
+        id: 50,
+        title: "Test 50",
+        content: "Content test",
+        time: DateTime.now(),
+      ),
       Todo(
-          id: 45,
-          title: "Test 45",
-          content: "Content test",
-          time: DateTime.now().add(const Duration(days: 5)))
+        id: 45,
+        title: "Test 45",
+        content: "Content test",
+        time: DateTime.now().add(const Duration(days: 5)),
+      ),
     ]);
 
     todosFiltered = todos;
@@ -461,191 +491,203 @@ class _ContentState extends State<_Content> {
       direction: size.width > 700 ? Axis.horizontal : Axis.vertical,
       children: [
         Expanded(
-            flex: size.width > 700 ? 1 : 2,
-            child: Container(
-              height: MediaQuery.of(context).size.height,
-              decoration: const BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  border: Border(
-                      right: BorderSide(width: 4, color: Colors.deepPurple))),
-              child: SingleChildScrollView(
-                controller: ScrollController(),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Show Image"),
-                        Checkbox(
-                            value: _showImg,
-                            onChanged: (value) {
-                              _showImg = value!;
-                              setState(() {});
-                            }),
-                      ],
-                    ),
-                    SfDateRangePicker(
-                      selectionColor: Colors.purple,
-                      startRangeSelectionColor: Colors.deepPurple,
-                      endRangeSelectionColor: Colors.deepPurple,
-                      rangeSelectionColor: Colors.purple,
-                      selectionMode: DateRangePickerSelectionMode.range,
-                      // initialSelectedRange: PickerDateRange(
-                      //   DateTime.now().subtract(const Duration(days: 3)),
-                      //   DateTime.now().add(const Duration(days: 3)),
-                      // ),
-                      // confirmText: "Yes!!!!",
-                      showActionButtons: true,
-                      onCancel: () {
-                        todosFiltered = todos;
-                        setState(() {});
-                      },
-                      onSubmit: (dateRange) {
-                        todosFiltered = [];
-                        if (dateRange is PickerDateRange) {
-                          for (var i = 0; i < todos.length; i++) {
-                            if (todos[i].time.compareTo(dateRange.startDate!) >=
-                                    0 &&
-                                todos[i].time.compareTo(dateRange.endDate!) <=
-                                    0) {
-                              todosFiltered.add(todos[i]);
-                            }
-                            print(todos[i].time);
-                          }
-
+          flex: size.width > 700 ? 1 : 2,
+          child: Container(
+            height: MediaQuery.of(context).size.height,
+            decoration: const BoxDecoration(
+              shape: BoxShape.rectangle,
+              border: Border(
+                right: BorderSide(width: 4, color: Colors.deepPurple),
+              ),
+            ),
+            child: SingleChildScrollView(
+              controller: ScrollController(),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Show Image"),
+                      Checkbox(
+                        value: _showImg,
+                        onChanged: (value) {
+                          _showImg = value!;
                           setState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                  SfDateRangePicker(
+                    selectionColor: Colors.purple,
+                    startRangeSelectionColor: Colors.deepPurple,
+                    endRangeSelectionColor: Colors.deepPurple,
+                    rangeSelectionColor: Colors.purple,
+                    selectionMode: DateRangePickerSelectionMode.range,
+                    // initialSelectedRange: PickerDateRange(
+                    //   DateTime.now().subtract(const Duration(days: 3)),
+                    //   DateTime.now().add(const Duration(days: 3)),
+                    // ),
+                    // confirmText: "Yes!!!!",
+                    showActionButtons: true,
+                    onCancel: () {
+                      todosFiltered = todos;
+                      setState(() {});
+                    },
+                    onSubmit: (dateRange) {
+                      todosFiltered = [];
+                      if (dateRange is PickerDateRange) {
+                        for (var i = 0; i < todos.length; i++) {
+                          if (todos[i].time.compareTo(dateRange.startDate!) >=
+                                  0 &&
+                              todos[i].time.compareTo(dateRange.endDate!) <=
+                                  0) {
+                            todosFiltered.add(todos[i]);
+                          }
+                          print(todos[i].time);
                         }
 
-                        print(dateRange);
-                      },
-                      onSelectionChanged: (dateRange) {
-                        print(dateRange.value);
-                        widget.selectedDateDialog(dateRange.value);
-                      },
+                        setState(() {});
+                      }
+
+                      print(dateRange);
+                    },
+                    onSelectionChanged: (dateRange) {
+                      print(dateRange.value);
+                      widget.selectedDateDialog(dateRange.value);
+                    },
+                  ),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.add),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple, // Formerly 'primary'
+                      foregroundColor: Colors.white, // Formerly 'onPrimary'
                     ),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.add),
-                      style: ElevatedButton.styleFrom(primary: Colors.purple),
-                      label: const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          "Add to do",
-                          style: TextStyle(fontSize: 17),
-                        ),
-                      ),
-                      onPressed: () {
-                        widget.saveTodoDialog();
-                      },
-                    )
-                  ],
-                ),
+                    label: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text("Add to do", style: TextStyle(fontSize: 17)),
+                    ),
+                    onPressed: () {
+                      widget.saveTodoDialog();
+                    },
+                  ),
+                ],
               ),
-            )),
+            ),
+          ),
+        ),
         Expanded(
-            flex: 3,
-            child: todosFiltered.isEmpty
-                ? const _PageEmpty()
-                : ListView.builder(
-                    itemCount: todosFiltered.length,
-                    itemBuilder: ((context, index) => DelayedDisplay(
-                          delay: const Duration(milliseconds: 5),
-                          slidingBeginOffset: const Offset(-1, 0),
-                          fadeIn: true,
-                          child: ListTile(
-                            title: Card(
-                              child: Flex(
-                                direction: size.width > 800
-                                    ? Axis.horizontal
-                                    : Axis.vertical,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AnimatedContainer(
-                                    width: _showImg
-                                        ? size.width > 800
-                                            ? 150
-                                            : 800
-                                        : 0,
-                                    duration: const Duration(
-                                        milliseconds:
-                                            280), //0 si existe overflow
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: const Image(
-                                        image:
-                                            AssetImage("assets/images/img.jpg"),
+          flex: 3,
+          child: todosFiltered.isEmpty
+              ? const _PageEmpty()
+              : ListView.builder(
+                  itemCount: todosFiltered.length,
+                  itemBuilder: ((context, index) => DelayedDisplay(
+                    delay: const Duration(milliseconds: 5),
+                    slidingBeginOffset: const Offset(-1, 0),
+                    fadeIn: true,
+                    child: ListTile(
+                      title: Card(
+                        child: Flex(
+                          direction: size.width > 800
+                              ? Axis.horizontal
+                              : Axis.vertical,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AnimatedContainer(
+                              width: _showImg
+                                  ? size.width > 800
+                                        ? 150
+                                        : 800
+                                  : 0,
+                              duration: const Duration(
+                                milliseconds: 280,
+                              ), //0 si existe overflow
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: const Image(
+                                  image: AssetImage("assets/images/img.jpg"),
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: (() => widget.saveTodoDialog(
+                                todo: todosFiltered[index],
+                              )),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      todosFiltered[index].title,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
                                       ),
                                     ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: (() => widget.saveTodoDialog(
-                                        todo: todosFiltered[index])),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 8),
+                                      child: Row(
                                         children: [
                                           Text(
-                                            todosFiltered[index].title,
+                                            "${todosFiltered[index].time.day}-${todosFiltered[index].time.month} ",
                                             style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 15),
+                                              fontWeight: FontWeight.bold,
+                                              color: Color.fromARGB(
+                                                255,
+                                                99,
+                                                99,
+                                                99,
+                                              ),
+                                            ),
                                           ),
-                                          Padding(
-                                            padding:
-                                                const EdgeInsets.only(left: 8),
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  "${todosFiltered[index].time.day}-${todosFiltered[index].time.month} ",
-                                                  style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Color.fromARGB(
-                                                          255, 99, 99, 99)),
-                                                ),
-                                                const SizedBox(height: 30),
-                                                Text(
-                                                  todosFiltered[index].content,
-                                                  style: const TextStyle(
-                                                      color: Color.fromARGB(
-                                                          255, 99, 99, 99)),
-                                                )
-                                              ],
+                                          const SizedBox(height: 30),
+                                          Text(
+                                            todosFiltered[index].content,
+                                            style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                255,
+                                                99,
+                                                99,
+                                                99,
+                                              ),
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                            leading: const Icon(
-                              Icons.check_circle_outline,
-                              color: Colors.green,
-                            ),
-                            trailing: GestureDetector(
-                              onTap: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (context) => _ConfirmDialog(
-                                        message:
-                                            "Are you sure to remove the to do?",
-                                        confirm: () {
-                                          todos.remove(todosFiltered[index]);
-                                          // todosFiltered
-                                          //     .remove(todosFiltered[index]);
-                                          setState(() {});
-                                        }));
+                          ],
+                        ),
+                      ),
+                      leading: const Icon(
+                        Icons.check_circle_outline,
+                        color: Colors.green,
+                      ),
+                      trailing: GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => _ConfirmDialog(
+                              message: "Are you sure to remove the to do?",
+                              confirm: () {
+                                todos.remove(todosFiltered[index]);
+                                // todosFiltered
+                                //     .remove(todosFiltered[index]);
+                                setState(() {});
                               },
-                              child: const Icon(
-                                Icons.delete,
-                                color: Colors.red,
-                              ),
                             ),
-                          ),
-                        )))),
+                          );
+                        },
+                        child: const Icon(Icons.delete, color: Colors.red),
+                      ),
+                    ),
+                  )),
+                ),
+        ),
       ],
     );
   }
@@ -662,16 +704,20 @@ class _PageEmpty extends StatelessWidget {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
-            color: Colors.purple.shade100, shape: BoxShape.circle),
+          color: Colors.purple.shade100,
+          shape: BoxShape.circle,
+        ),
         child: const Center(
-            child: Text(
-          "No Task To Do",
-          style: TextStyle(
+          child: Text(
+            "No Task To Do",
+            style: TextStyle(
               color: Colors.purple,
               fontStyle: FontStyle.italic,
               fontSize: 50,
-              fontWeight: FontWeight.w100),
-        )),
+              fontWeight: FontWeight.w100,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -681,9 +727,11 @@ class _ImageField extends StatefulWidget {
   final Function onSelectedImage;
   final String imageDefault;
 
-  const _ImageField(
-      {Key? key, required this.onSelectedImage, this.imageDefault = ""})
-      : super(key: key);
+  const _ImageField({
+    Key? key,
+    required this.onSelectedImage,
+    this.imageDefault = "",
+  }) : super(key: key);
 
   @override
   State<_ImageField> createState() => _ImageFieldState();
@@ -695,8 +743,9 @@ class _ImageFieldState extends State<_ImageField> {
   @override
   void initState() {
     try {
-      _imagePlace =
-          widget.imageDefault != "" ? File(widget.imageDefault) : null;
+      _imagePlace = widget.imageDefault != ""
+          ? File(widget.imageDefault)
+          : null;
     } catch (e) {
       print("Error al convertir el archivo");
     }
@@ -725,11 +774,13 @@ class _ImageFieldState extends State<_ImageField> {
               imagePicker();
             },
             child: Container(
-                width: 160,
-                height: 100,
-                decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: Colors.purple)),
-                child: const Icon(Icons.image, color: Colors.purple)),
+              width: 160,
+              height: 100,
+              decoration: BoxDecoration(
+                border: Border.all(width: 1, color: Colors.purple),
+              ),
+              child: const Icon(Icons.image, color: Colors.purple),
+            ),
           ),
         // TextButton(
         //   onPressed: imagePicker,
@@ -744,8 +795,10 @@ class _ImageFieldState extends State<_ImageField> {
   }
 
   Future imagePicker() async {
-    final imageFile = await ImagePicker()
-        .pickImage(source: ImageSource.gallery, imageQuality: 60);
+    final imageFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 60,
+    );
 
     if (imageFile == null) {
       return;
@@ -758,8 +811,10 @@ class _ImageFieldState extends State<_ImageField> {
   }
 
   Future cameraPicker() async {
-    final imageFile = await ImagePicker()
-        .pickImage(source: ImageSource.camera, imageQuality: 60);
+    final imageFile = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      imageQuality: 60,
+    );
 
     if (imageFile == null) {
       return;
